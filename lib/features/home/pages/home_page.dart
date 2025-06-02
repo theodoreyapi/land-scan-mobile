@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:http/http.dart' as http;
+import '../../../core/constants/constants.dart';
 import '../../../core/themes/themes.dart';
 import 'package:sizer/sizer.dart';
+import '../../../core/utils/utils.dart';
+import '../../../models/history/history_model.dart';
 import '../homes.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,77 +17,51 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class Produits {
-  final int id;
-  final String categorie;
-  final String name;
-  final String price;
-  final String facadeImage;
-
-  Produits({
-    required this.id,
-    required this.categorie,
-    required this.name,
-    required this.price,
-    required this.facadeImage,
-  });
-}
-
 class _HomePageState extends State<HomePage> {
   bool isLoading = false;
-  bool _isVisible = true;
 
-  final List<Produits> allProduitss = [
-    Produits(
-      id: 1,
-      categorie: "Porte 04",
-      name: "CAN 2025",
-      price: "15",
-      facadeImage: "assets/images/garde.png",
-    ),
-    Produits(
-      id: 2,
-      categorie: "Porte 04",
-      name: "Championnat 2025",
-      price: "30",
-      facadeImage: "assets/images/garde.png",
-    ),
-    Produits(
-      id: 3,
-      categorie: "Porte 08",
-      name: "Match amical",
-      price: "10",
-      facadeImage: "assets/images/garde.png",
-    ),
-    Produits(
-      id: 4,
-      categorie: "Porte 15",
-      name: "Sponsor",
-      price: "20",
-      facadeImage: "assets/images/garde.png",
-    ),
-  ];
-
-  List<Produits> filteredProduitss = [];
-  TextEditingController searchController = TextEditingController();
+  List<Events> allPharmacies = [];
+  late Future<List<Events>> _futurePharmacies;
 
   @override
   void initState() {
     super.initState();
-    loadProduits();
+    _futurePharmacies = fetchPharmacie();
   }
 
-  void loadProduits() {
+  void _refreshData() {
     setState(() {
-      isLoading = true;
+      _futurePharmacies = Future.value(allPharmacies);
     });
+  }
 
-    Future.delayed(Duration(seconds: 1), () {
-      setState(() {
-        filteredProduitss = List.from(allProduitss);
-        isLoading = false;
-      });
-    });
+  Future<List<Events>> fetchPharmacie() async {
+    final http.Response response = await http.get(
+      Uri.parse(
+        "${ApiUrls.getListEventUrl}${SharedPreferencesHelper().getString('identifiant')!}",
+      ),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> contentList = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
+
+      debugPrint(contentList.toString());
+
+      try {
+        List<Events> pharmacies =
+            contentList
+                .map((item) => Events.fromJson(item as Map<String, dynamic>))
+                .toList();
+        return pharmacies;
+      } catch (e) {
+        throw Exception("Erreur lors de la conversion JSON");
+      }
+    } else {
+      throw Exception("Une erreur s'est produite");
+    }
   }
 
   @override
@@ -198,16 +178,33 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : filteredProduitss.isEmpty
-                    ? Center(child: Text("Pas de produit disponible"))
-                    : ListView.builder(
-                      itemCount: filteredProduitss.length,
+                FutureBuilder<List<Events>>(
+                  future: _futurePharmacies,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          "Pas de pharmacie disponible pour cette commune",
+                        ),
+                      );
+                    }
+
+                    allPharmacies = snapshot.data!;
+
+                    if (allPharmacies.isEmpty) {
+                      return Center(child: Text("Pas d'assurance disponible"));
+                    }
+
+                    return ListView.builder(
+                      itemCount: allPharmacies.length,
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
-                        final contact = filteredProduitss[index];
+                        final contact = allPharmacies[index];
                         return ClipRect(
                           child: Container(
                             width: double.infinity,
@@ -226,8 +223,8 @@ class _HomePageState extends State<HomePage> {
                                     padding: const EdgeInsets.all(4.0),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(3.w),
-                                      child: Image.asset(
-                                        contact.facadeImage,
+                                      child: Image.network(
+                                        contact.eventImage!,
                                         height: 70,
                                         fit: BoxFit.cover,
                                         errorBuilder: (
@@ -261,16 +258,7 @@ class _HomePageState extends State<HomePage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          contact.categorie,
-                                          maxLines: 2,
-                                          style: TextStyle(
-                                            color: Colors.blueGrey,
-                                            fontSize: 14.sp,
-                                            fontWeight: FontWeight.normal,
-                                          ),
-                                        ),
-                                        Text(
-                                          contact.name,
+                                          contact.eventName!,
                                           maxLines: 2,
                                           style: TextStyle(
                                             color: appColorBlack,
@@ -280,7 +268,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          "Nbre ticket: ${contact.price}",
+                                          "Nbre ticket: ${contact.tickets!.length}",
                                           style: TextStyle(
                                             color: appColor,
                                             fontSize: 14.sp,
@@ -296,7 +284,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                       },
-                    ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -313,7 +303,7 @@ class _HomePageState extends State<HomePage> {
           );
 
           if (result == true) {
-            //  _refreshNotes();
+            _refreshData();
           }
         },
         child: Icon(Icons.qr_code_scanner_outlined, color: appWhite),

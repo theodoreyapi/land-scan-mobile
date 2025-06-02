@@ -1,10 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:http/http.dart' as http;
 import 'package:sizer/sizer.dart';
 
 import '../../../../core/constants/constants.dart';
 import '../../../../core/themes/themes.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../core/utils/utils.dart';
 import '../../menus/menus.dart';
 
 class LoginPage extends StatefulWidget {
@@ -85,11 +90,11 @@ class _LoginPageState extends State<LoginPage> {
                         Gap(2.h),
                         InputText(
                           hintText: "Identifiant",
-                          keyboardType: TextInputType.text,
+                          keyboardType: TextInputType.phone,
                           controller: login,
                           validatorMessage: "Veuillez saisir votre identifiant",
                         ),
-                        Gap(2.h),
+                        Gap(1.h),
                         InputPassword(
                           hintText: "Mot de passe",
                           controller: password,
@@ -108,40 +113,16 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
                         ),
-                        Gap(1.h),
+                        Gap(2.h),
                         SubmitButton(
                           AppConstants.btnLogin,
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => MenuPage(),
-                                ),
-                              );
+                              loginUser(context);
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.red,
-                                  action: SnackBarAction(
-                                    label: 'Fermer',
-                                    onPressed: () {
-                                      // Code to execute.
-                                    },
-                                  ),
-                                  content: const Text(
-                                    "Veuillez remplir tous les champs",
-                                  ),
-                                  duration: const Duration(milliseconds: 5000),
-                                  width: 280.0,
-                                  // Width of the SnackBar.
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                  ),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                ),
+                              SnackbarHelper.showError(
+                                context,
+                                "Veuillez remplir tous les champs",
                               );
                             }
                           },
@@ -156,5 +137,66 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  Future<void> loginUser(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(width: 20),
+              const Expanded(child: Text('Connexion en cours...')),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      // Autoriser les certificats auto-signés (attention en production)
+      HttpClient().badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+
+      final response = await http.post(
+        Uri.parse(ApiUrls.postLoginUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'login': login.text, 'password': password.text}),
+      );
+
+      final Map<String, dynamic> responseData = jsonDecode(
+        utf8.decode(response.bodyBytes),
+      );
+
+      if (response.statusCode == 200) {
+        print(responseData['identifiant'].toString());
+        await Future.wait([
+          SharedPreferencesHelper().saveString(
+            'identifiant',
+            responseData['identifiant'].toString(),
+          ),
+          SharedPreferencesHelper().saveString('nom', responseData['nom']),
+          SharedPreferencesHelper().saveString('phone', responseData['phone']),
+          SharedPreferencesHelper().saveString('email', responseData['email']),
+          SharedPreferencesHelper().saveString('photo', responseData['photo']),
+        ]);
+
+        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MenuPage()),
+          (route) => false,
+        );
+      } else {
+        Navigator.pop(context);
+        SnackbarHelper.showError(context, responseData['message']);
+      }
+    } catch (e) {
+      Navigator.pop(context);
+      SnackbarHelper.showError(context, "Erreur de connexion");
+    }
   }
 }

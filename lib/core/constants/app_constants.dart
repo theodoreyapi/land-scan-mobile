@@ -7,4 +7,6 @@ class AppConstants {
   static const btnLogin = "Se connecter";
   static const btnNext = "Commencer";
   static const btnSave = "Enregistrer";
+  static const btnCancel = "Annuler";
+  static const btnLogout = "Se déconnecter";
 }

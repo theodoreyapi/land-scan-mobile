@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/themes/themes.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../homes/homes.dart';
+import '../../../core/utils/utils.dart';
+import '../../home/homes.dart';
 import '../../notes/notes.dart';
 import '../../profile/pages/pages.dart';
 
@@ -28,7 +29,7 @@ class _MenuPageState extends State<MenuPage> {
         automaticallyImplyLeading: false,
         title: ListTile(
           title: Text(
-            "Bonjour, Yapi",
+            "Bonjour",
             style: TextStyle(color: appColor, fontWeight: FontWeight.bold),
           ),
           subtitle: Text("Amusez-vous !!!"),
@@ -36,7 +37,14 @@ class _MenuPageState extends State<MenuPage> {
         actions: [
           Padding(
             padding: EdgeInsets.all(2.w),
-            child: CircleAvatar(child: FlutterLogo()),
+            child: CircleAvatar(
+              child:
+                  SharedPreferencesHelper().getString('photo')! == ""
+                      ? FlutterLogo()
+                      : Image.network(
+                        SharedPreferencesHelper().getString('photo')!,
+                      ),
+            ),
           ),
         ],
       ),

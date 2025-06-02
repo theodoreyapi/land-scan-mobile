@@ -3,7 +3,9 @@ import 'package:sizer/sizer.dart';
 import 'package:ticket_valide/core/constants/constants.dart';
 
 import '../../../core/themes/themes.dart';
+import '../../../core/utils/utils.dart';
 import '../../login/login.dart';
+import '../../menus/menus.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -73,9 +75,15 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _navigateToNextScreen() async {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-      (route) => false,
-    );
+    String? nom = SharedPreferencesHelper().getString('nom');
+    if (nom != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const MenuPage()),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
   }
 }

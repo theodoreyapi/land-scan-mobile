@@ -1,10 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:http/http.dart' as http;
 import 'package:sizer/sizer.dart';
 
+import '../../../core/constants/constants.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/utils/utils.dart';
 import '../../../core/widgets/inputs/inputs.dart';
-import '../../homes/homes.dart';
+import '../../../models/history/history_model.dart';
+import '../../home/homes.dart';
 import '../notes.dart';
 
 class NotePage extends StatefulWidget {
@@ -14,85 +20,31 @@ class NotePage extends StatefulWidget {
   State<NotePage> createState() => _NotePageState();
 }
 
-class Produits {
-  final int id;
-  final String categorie;
-  final String name;
-  final String price;
-  final String date;
-  final String facadeImage;
-
-  Produits({
-    required this.id,
-    required this.categorie,
-    required this.name,
-    required this.price,
-    required this.date,
-    required this.facadeImage,
-  });
-}
-
 class _NotePageState extends State<NotePage> {
   var searchController = TextEditingController();
 
-  late List<Produits> allProduitss = [
-    Produits(
-      id: 1,
-      categorie: "Porte 04",
-      name: "CAN 2025",
-      price: "15",
-      date: "15/05/2025",
-      facadeImage: "assets/images/garde.png",
-    ),
-    Produits(
-      id: 2,
-      categorie: "Porte 04",
-      name: "Championnat 2025",
-      date: "20/05/2025",
-      price: "30",
-      facadeImage: "assets/images/garde.png",
-    ),
-    Produits(
-      id: 3,
-      categorie: "Porte 08",
-      name: "Match amical",
-      date: "30/05/2025",
-      price: "10",
-      facadeImage: "assets/images/garde.png",
-    ),
-    Produits(
-      id: 4,
-      categorie: "Porte 15",
-      name: "Sponsor",
-      date: "01/06/2025",
-      price: "20",
-      facadeImage: "assets/images/garde.png",
-    ),
-  ];
-  List<Produits> filteredProduitss = [];
+  List<Events> allPharmacies = [];
+  List<Events> filteredPharmacies = [];
   bool isLoading = false;
-  late Future<List<Produits>> _futureProduitss;
+  late Future<List<Events>> _futurePharmacies;
+
+  String afficheOne = "";
+  String afficheTwo = "";
 
   @override
   void initState() {
     super.initState();
-    _futureProduitss = Future.value(allProduitss);
-    searchController.addListener(_filterProduitss);
+    _futurePharmacies = fetchPharmacie();
+    searchController.addListener(_filterPharmacies);
   }
 
-  void _filterProduitss() {
+  void _filterPharmacies() {
     final query = searchController.text.toLowerCase();
     setState(() {
-      filteredProduitss =
-          allProduitss
-              .where((commune) => commune.name.toLowerCase().contains(query))
+      filteredPharmacies =
+          allPharmacies
+              .where((commune) => commune.eventName!.toLowerCase().contains(query))
               .toList();
-    });
-  }
-
-  void _refreshData() {
-    setState(() {
-      _futureProduitss = Future.value(allProduitss);
     });
   }
 
@@ -100,6 +52,44 @@ class _NotePageState extends State<NotePage> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  Future<List<Events>> fetchPharmacie() async {
+    final http.Response response = await http.get(
+      Uri.parse(
+        "${ApiUrls.getListEventScanUrl}${SharedPreferencesHelper().getString('identifiant')!}",
+      ),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> contentList = json.decode(
+        utf8.decode(response.bodyBytes),
+      );
+
+      try {
+        List<Events> pharmacies =
+        contentList
+            .map(
+              (item) =>
+                  Events.fromJson(item as Map<String, dynamic>),
+        )
+            .toList();
+        return pharmacies;
+      } catch (e) {
+        throw Exception("Erreur lors de la conversion JSON");
+      }
+    } else {
+      throw Exception("Une erreur s'est produite");
+    }
+  }
+
+  void _refreshData() {
+    setState(() {
+      _futurePharmacies = Future.value(allPharmacies);
+    });
   }
 
   @override
@@ -132,8 +122,8 @@ class _NotePageState extends State<NotePage> {
               ),
               Gap(2.h),
               Expanded(
-                child: FutureBuilder<List<Produits>>(
-                  future: _futureProduitss,
+                child: FutureBuilder<List<Events>>(
+                  future: _futurePharmacies,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
@@ -142,38 +132,37 @@ class _NotePageState extends State<NotePage> {
                     if (snapshot.hasError) {
                       return Center(
                         child: Text(
-                          "Pas de pharmacie disponible pour cette commune",
+                          "Pas d'évènement scanné disponible",
                         ),
                       );
                     }
 
                     if (snapshot.hasData) {
-                      allProduitss = snapshot.data!;
-                      // Appliquer filtre si champ recherche non vide
-                      filteredProduitss =
+                      allPharmacies = snapshot.data!;
+                      filteredPharmacies =
                           searchController.text.isEmpty
-                              ? allProduitss
-                              : allProduitss
+                              ? allPharmacies
+                              : allPharmacies
                                   .where(
                                     (commune) =>
-                                        commune.name.toLowerCase().contains(
+                                        commune.eventName!.toLowerCase().contains(
                                           searchController.text.toLowerCase(),
                                         ),
                                   )
                                   .toList();
 
-                      if (filteredProduitss.isEmpty) {
+                      if (filteredPharmacies.isEmpty) {
                         return Center(
-                          child: Text("Pas de pharmacie disponible"),
+                          child: Text("Pas d'évènement scanné disponible"),
                         );
                       }
 
                       return ListView.builder(
-                        itemCount: filteredProduitss.length,
+                        itemCount: filteredPharmacies.length,
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          final contact = filteredProduitss[index];
+                          final contact = filteredPharmacies[index];
                           return InkWell(
                             onTap: () {
                               Navigator.push(
@@ -205,8 +194,8 @@ class _NotePageState extends State<NotePage> {
                                           borderRadius: BorderRadius.circular(
                                             3.w,
                                           ),
-                                          child: Image.asset(
-                                            contact.facadeImage,
+                                          child: Image.network(
+                                            contact.eventImage!,
                                             height: 70,
                                             fit: BoxFit.cover,
                                             errorBuilder: (
@@ -242,7 +231,7 @@ class _NotePageState extends State<NotePage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
+                                           /* Text(
                                               contact.categorie,
                                               maxLines: 2,
                                               style: TextStyle(
@@ -250,9 +239,9 @@ class _NotePageState extends State<NotePage> {
                                                 fontSize: 14.sp,
                                                 fontWeight: FontWeight.normal,
                                               ),
-                                            ),
+                                            ),*/
                                             Text(
-                                              contact.name,
+                                              contact.eventName!,
                                               maxLines: 1,
                                               style: TextStyle(
                                                 color: appColorBlack,
@@ -261,7 +250,7 @@ class _NotePageState extends State<NotePage> {
                                               ),
                                             ),
                                             Text(
-                                              contact.date,
+                                              contact.eventDate!,
                                               maxLines: 2,
                                               style: TextStyle(
                                                 color: appCardBlue,
@@ -271,7 +260,7 @@ class _NotePageState extends State<NotePage> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              "Nbre ticket: ${contact.price}",
+                                              "Nbre ticket: ${contact.tickets!.length}",
                                               style: TextStyle(
                                                 color: appColor,
                                                 fontSize: 14.sp,

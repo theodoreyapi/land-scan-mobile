@@ -3,9 +3,10 @@ import 'package:gap/gap.dart';
 import 'package:sizer/sizer.dart';
 import 'package:ticket_valide/core/themes/themes.dart';
 import 'package:ticket_valide/features/notes/pages/note_page.dart';
+import 'package:ticket_valide/models/history/history_model.dart';
 
 class DetailNotePage extends StatefulWidget {
-  Produits? details;
+  Events? details;
 
   DetailNotePage({super.key, this.details});
 
@@ -18,7 +19,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.details!.name),
+        title: Text(widget.details!.eventName!),
         centerTitle: false,
         backgroundColor: appColor,
       ),
@@ -28,8 +29,8 @@ class _DetailNotePageState extends State<DetailNotePage> {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(3.w),
-                child: Image.asset(
-                  widget.details!.facadeImage,
+                child: Image.network(
+                  widget.details!.eventImage!,
                   height: 70,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
@@ -46,7 +47,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
             ),
             Gap(2.h),
             Text(
-              widget.details!.categorie,
+              widget.details!.eventLieu!,
               style: TextStyle(
                 color: appColorBlack,
                 fontSize: 18.sp,

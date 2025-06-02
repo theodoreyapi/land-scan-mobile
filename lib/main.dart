@@ -4,9 +4,13 @@ import 'package:sizer/sizer.dart';
 
 import 'core/constants/constants.dart';
 import 'core/themes/themes.dart';
+import 'core/utils/utils.dart';
 import 'features/splashs/splash.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SharedPreferencesHelper().init();
   runApp(const MyApp());
 }
 
