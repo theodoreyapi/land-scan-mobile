@@ -8,6 +8,7 @@ import '../../../core/themes/themes.dart';
 import 'package:sizer/sizer.dart';
 import '../../../core/utils/utils.dart';
 import '../../../models/history/history_model.dart';
+import '../../../models/states/state_model.dart';
 import '../homes.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,11 +23,13 @@ class _HomePageState extends State<HomePage> {
 
   List<Events> allPharmacies = [];
   late Future<List<Events>> _futurePharmacies;
+  late Future<List<States>> _futureStates;
 
   @override
   void initState() {
     super.initState();
     _futurePharmacies = fetchPharmacie();
+    _futureStates = fetchStates();
   }
 
   void _refreshData() {
@@ -48,7 +51,7 @@ class _HomePageState extends State<HomePage> {
         utf8.decode(response.bodyBytes),
       );
 
-      debugPrint(contentList.toString());
+      //debugPrint(contentList.toString());
 
       try {
         List<Events> pharmacies =
@@ -64,6 +67,30 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<List<States>> fetchStates() async {
+    debugPrint(
+      "${ApiUrls.getStateUrl}${SharedPreferencesHelper().getString('identifiant')!}",
+    );
+    final http.Response response = await http.get(
+      Uri.parse(
+        "${ApiUrls.getStateUrl}${SharedPreferencesHelper().getString('identifiant')!}",
+      ),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final Map<String, dynamic> contentMap = json.decode(
+      utf8.decode(response.bodyBytes),
+    );
+
+    debugPrint("JSON $contentMap");
+
+    try {
+      return [States.fromJson(contentMap)];
+    } catch (e) {
+      throw Exception("Erreur lors de la conversion JSON");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,101 +102,129 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: appCardOrange,
-                          borderRadius: BorderRadius.circular(3.w),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                FutureBuilder<List<States>>(
+                  future: _futureStates,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Container();
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Container();
+                    }
+
+                    States state = snapshot.data!.first;
+
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              "Evénements",
-                              style: TextStyle(
-                                color: appWhite,
-                                fontSize: 15.sp,
+                            Expanded(
+                              child: Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: appCardOrange,
+                                  borderRadius: BorderRadius.circular(3.w),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Evénements",
+                                      style: TextStyle(
+                                        color: appWhite,
+                                        fontSize: 15.sp,
+                                      ),
+                                    ),
+                                    Gap(1.h),
+                                    Text(
+                                      "${state.totalEvenements ?? 0}",
+                                      style: TextStyle(
+                                        color: appWhite,
+                                        fontSize: 20.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            Gap(1.h),
-                            Text(
-                              "5",
-                              style: TextStyle(
-                                color: appWhite,
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold,
+                            Gap(2.w),
+                            Expanded(
+                              child: Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: appCardBlue,
+                                  borderRadius: BorderRadius.circular(3.w),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Tickets",
+                                      style: TextStyle(
+                                        color: appWhite,
+                                        fontSize: 15.sp,
+                                      ),
+                                    ),
+                                    Gap(1.h),
+                                    Text(
+                                      "${state.totalTickets ?? 0}",
+                                      style: TextStyle(
+                                        color: appWhite,
+                                        fontSize: 20.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    Gap(2.w),
-                    Expanded(
-                      child: Container(
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: appCardBlue,
-                          borderRadius: BorderRadius.circular(3.w),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Tickets",
-                              style: TextStyle(
-                                color: appWhite,
-                                fontSize: 15.sp,
+                        Gap(1.h),
+                        Container(
+                          height: 80,
+                          width: MediaQuery.of(context).size.width,
+                          padding: EdgeInsets.all(4.w),
+                          decoration: BoxDecoration(
+                            color: appCardGreen,
+                            borderRadius: BorderRadius.circular(3.w),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Tickets Scannés",
+                                style: TextStyle(
+                                  color: appWhite,
+                                  fontSize: 15.sp,
+                                ),
                               ),
-                            ),
-                            Gap(1.h),
-                            Text(
-                              "10",
-                              style: TextStyle(
-                                color: appWhite,
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold,
+                              Text(
+                                "${state.ticketsScannes ?? 0}",
+                                style: TextStyle(
+                                  color: appWhite,
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                        Gap(2.h),
+                      ],
+                    );
+                  },
                 ),
-                Gap(1.h),
-                Container(
-                  height: 80,
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.all(4.w),
-                  decoration: BoxDecoration(
-                    color: appCardGreen,
-                    borderRadius: BorderRadius.circular(3.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Tickets Scannés",
-                        style: TextStyle(color: appWhite, fontSize: 15.sp),
-                      ),
-                      Text(
-                        "8",
-                        style: TextStyle(
-                          color: appWhite,
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Gap(2.h),
                 Text(
                   "Evénements",
                   style: TextStyle(
@@ -258,6 +313,15 @@ class _HomePageState extends State<HomePage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
+                                          contact.porteName!,
+                                          maxLines: 2,
+                                          style: TextStyle(
+                                            color: Colors.blueGrey,
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.normal,
+                                          ),
+                                        ),
+                                        Text(
                                           contact.eventName!,
                                           maxLines: 2,
                                           style: TextStyle(
@@ -266,9 +330,18 @@ class _HomePageState extends State<HomePage> {
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
+                                        Text(
+                                          "${contact.eventDate!} à ${contact.eventTime!}",
+                                          maxLines: 2,
+                                          style: TextStyle(
+                                            color: appCardBlue,
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          "Nbre ticket: ${contact.tickets!.length}",
+                                          "Nbre ticket: ${contact.totalTickets}",
                                           style: TextStyle(
                                             color: appColor,
                                             fontSize: 14.sp,

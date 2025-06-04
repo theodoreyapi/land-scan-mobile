@@ -18,6 +18,7 @@ class ApiUrls {
   // Events
   static String get getListEventScanUrl => "$baseUrl/event/";
   static String get getListEventUrl => "$baseUrl/eventFive/";
+  static String get getStateUrl => "$baseUrl/states/";
   static String get postEventScanUrl => "$baseUrl/scanne";
 
 }

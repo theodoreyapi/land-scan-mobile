@@ -60,7 +60,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
                 padding: EdgeInsets.all(4.w),
                 child: Column(
                   children: [
-                    Row(
+                    /* Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
@@ -72,7 +72,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
                           ),
                         ),
                         Text(
-                          "10",
+                          widget.details!.totalTickets!.toString(),
                           style: TextStyle(
                             color: appColorBlack,
                             fontSize: 16.sp,
@@ -81,12 +81,12 @@ class _DetailNotePageState extends State<DetailNotePage> {
                         ),
                       ],
                     ),
-                    Gap(2.h),
+                    Gap(2.h),*/
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Ticket déjà lu",
+                          "Ticket Scanné",
                           style: TextStyle(
                             color: Colors.blueGrey,
                             fontSize: 16.sp,
@@ -94,7 +94,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
                           ),
                         ),
                         Text(
-                          "10",
+                          widget.details!.ticketsScannes!.toString(),
                           style: TextStyle(
                             color: appColorBlack,
                             fontSize: 16.sp,
@@ -103,7 +103,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
                         ),
                       ],
                     ),
-                    Gap(2.h),
+                    /*Gap(2.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -146,7 +146,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
                           ),
                         ),
                       ],
-                    ),
+                    ),*/
                   ],
                 ),
               ),
@@ -156,7 +156,7 @@ class _DetailNotePageState extends State<DetailNotePage> {
               color: appCardBlue,
               child: Center(
                 child: Text(
-                  "Nombre auto".toUpperCase(),
+                  widget.details!.ticketsScannes!.toString().toUpperCase(),
                   style: TextStyle(
                     color: appWhite,
                     fontWeight: FontWeight.bold,

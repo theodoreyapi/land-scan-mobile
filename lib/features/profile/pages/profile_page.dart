@@ -250,6 +250,22 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   logoutUser() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(width: 20),
+              const Expanded(child: Text('Déconnexion en cours...')),
+            ],
+          ),
+        );
+      },
+    );
+
     final http.Response response = await http.get(
       Uri.parse(
         "${ApiUrls.getLogoutUrl}${SharedPreferencesHelper().getString('identifiant')!}",
@@ -259,13 +275,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (response.statusCode == 200) {
       await SharedPreferencesHelper().clear();
+
+      Navigator.pop(context);
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
         (route) => false,
       );
     } else {
-      throw Exception("Impossible de vous déconnectez. Veuillez réessayer!!!");
+      Navigator.pop(context);
+      SnackbarHelper.showError(
+        context,
+        "Impossible de vous déconnectez. Veuillez réessayer!!!",
+      );
     }
   }
 }

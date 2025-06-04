@@ -231,15 +231,15 @@ class _NotePageState extends State<NotePage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                           /* Text(
-                                              contact.categorie,
+                                           Text(
+                                              contact.porteName!,
                                               maxLines: 2,
                                               style: TextStyle(
                                                 color: Colors.blueGrey,
                                                 fontSize: 14.sp,
                                                 fontWeight: FontWeight.normal,
                                               ),
-                                            ),*/
+                                            ),
                                             Text(
                                               contact.eventName!,
                                               maxLines: 1,
@@ -250,7 +250,7 @@ class _NotePageState extends State<NotePage> {
                                               ),
                                             ),
                                             Text(
-                                              contact.eventDate!,
+                                              "${contact.eventDate!} à ${contact.eventTime!}",
                                               maxLines: 2,
                                               style: TextStyle(
                                                 color: appCardBlue,
@@ -260,7 +260,7 @@ class _NotePageState extends State<NotePage> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              "Nbre ticket: ${contact.tickets!.length}",
+                                              "Nbre ticket Scanné: ${contact.totalTickets}",
                                               style: TextStyle(
                                                 color: appColor,
                                                 fontSize: 14.sp,
@@ -279,7 +279,6 @@ class _NotePageState extends State<NotePage> {
                         },
                       );
                     }
-
                     return Center(child: Text("Aucune donnée disponible"));
                   },
                 ),

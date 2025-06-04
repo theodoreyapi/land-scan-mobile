@@ -172,7 +172,6 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
-        print(responseData['identifiant'].toString());
         await Future.wait([
           SharedPreferencesHelper().saveString(
             'identifiant',
