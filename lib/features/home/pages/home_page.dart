@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> {
                     allPharmacies = snapshot.data!;
 
                     if (allPharmacies.isEmpty) {
-                      return Center(child: Text("Pas d'assurance disponible"));
+                      return Center(child: Text("Pas d'évènement disponible"));
                     }
 
                     return ListView.builder(

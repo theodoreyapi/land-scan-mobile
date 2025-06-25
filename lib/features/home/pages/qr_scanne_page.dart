@@ -43,7 +43,7 @@ class _QrScannePageState extends State<QrScannePage> {
       if (!isProcessing) {
         isProcessing = true;
         controller.pauseCamera(); // on arrête la caméra pendant le traitement
-        scanUser(scanData);       // on appelle la fonction
+        scanUser(scanData); // on appelle la fonction
       }
     });
   }
@@ -105,7 +105,6 @@ class _QrScannePageState extends State<QrScannePage> {
 
       controller?.resumeCamera();
       isProcessing = false;
-
     } catch (e) {
       Navigator.pop(context);
       setState(() {
@@ -126,16 +125,33 @@ class _QrScannePageState extends State<QrScannePage> {
         children: <Widget>[
           Expanded(
             flex: 5,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
-              overlay: QrScannerOverlayShape(
-                borderColor: appWhite,
-                overlayColor: Colors.grey.shade500.withValues(alpha: 0.6),
-                borderRadius: 2,
-                borderLength: 30,
-                borderWidth: 10,
-              ),
+            child: Stack(
+              children: [
+                QRView(
+                  key: qrKey,
+                  onQRViewCreated: _onQRViewCreated,
+                  overlay: QrScannerOverlayShape(
+                    borderColor: appWhite,
+                    overlayColor: Colors.grey.shade500.withOpacity(0.6),
+                    borderRadius: 2,
+                    borderLength: 30,
+                    borderWidth: 10,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: FloatingActionButton(
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.flash_on, color: Colors.black),
+                      onPressed: () async {
+                        await controller?.toggleFlash();
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
