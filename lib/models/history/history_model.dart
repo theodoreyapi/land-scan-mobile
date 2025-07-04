@@ -5,21 +5,20 @@ class Events {
   String? eventLieu;
   String? eventDate;
   String? eventTime;
-  String? porteName;
+  List<String>? portes;
   int? totalTickets;
   int? ticketsScannes;
 
-  Events({
-    this.eventId,
-    this.eventImage,
-    this.eventName,
-    this.eventLieu,
-    this.eventDate,
-    this.eventTime,
-    this.porteName,
-    this.totalTickets,
-    this.ticketsScannes,
-  });
+  Events(
+      {this.eventId,
+        this.eventImage,
+        this.eventName,
+        this.eventLieu,
+        this.eventDate,
+        this.eventTime,
+        this.portes,
+        this.totalTickets,
+        this.ticketsScannes});
 
   Events.fromJson(Map<String, dynamic> json) {
     eventId = json['event_id'];
@@ -28,22 +27,22 @@ class Events {
     eventLieu = json['event_lieu'];
     eventDate = json['event_date'];
     eventTime = json['event_time'];
-    porteName = json['porte_name'];
+    portes = json['portes'].cast<String>();
     totalTickets = json['total_tickets'];
     ticketsScannes = json['tickets_scannes'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['event_id'] = eventId;
-    data['event_image'] = eventImage;
-    data['event_name'] = eventName;
-    data['event_lieu'] = eventLieu;
-    data['event_date'] = eventDate;
-    data['event_time'] = eventTime;
-    data['porte_name'] = porteName;
-    data['total_tickets'] = totalTickets;
-    data['tickets_scannes'] = ticketsScannes;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['event_id'] = this.eventId;
+    data['event_image'] = this.eventImage;
+    data['event_name'] = this.eventName;
+    data['event_lieu'] = this.eventLieu;
+    data['event_date'] = this.eventDate;
+    data['event_time'] = this.eventTime;
+    data['portes'] = this.portes;
+    data['total_tickets'] = this.totalTickets;
+    data['tickets_scannes'] = this.ticketsScannes;
     return data;
   }
 }

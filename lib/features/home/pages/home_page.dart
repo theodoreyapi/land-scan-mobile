@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                     if (snapshot.hasError) {
                       return Center(
                         child: Text(
-                          "Pas de pharmacie disponible pour cette commune",
+                          "Pas de ticket disponible",
                         ),
                       );
                     }
@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> {
                     allPharmacies = snapshot.data!;
 
                     if (allPharmacies.isEmpty) {
-                      return Center(child: Text("Pas d'évènement disponible"));
+                      return Center(child: Text("Pas de ticket disponible"));
                     }
 
                     return ListView.builder(
@@ -313,7 +313,7 @@ class _HomePageState extends State<HomePage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          contact.porteName!,
+                                          contact.portes!.toList().toString(),
                                           maxLines: 2,
                                           style: TextStyle(
                                             color: Colors.blueGrey,

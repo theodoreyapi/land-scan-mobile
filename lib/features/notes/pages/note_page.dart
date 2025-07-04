@@ -232,7 +232,7 @@ class _NotePageState extends State<NotePage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                            Text(
-                                              contact.porteName!,
+                                              contact.portes!.toList().toString(),
                                               maxLines: 2,
                                               style: TextStyle(
                                                 color: Colors.blueGrey,
