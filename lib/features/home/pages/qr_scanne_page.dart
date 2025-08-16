@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
@@ -132,7 +131,7 @@ class _QrScannePageState extends State<QrScannePage> {
                   onQRViewCreated: _onQRViewCreated,
                   overlay: QrScannerOverlayShape(
                     borderColor: appWhite,
-                    overlayColor: Colors.grey.shade500.withOpacity(0.6),
+                    overlayColor: Colors.grey.shade500.withValues(alpha: 0.6),
                     borderRadius: 2,
                     borderLength: 30,
                     borderWidth: 10,
